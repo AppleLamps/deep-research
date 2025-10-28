@@ -95,17 +95,16 @@ npm install
 3. Set up environment variables in a `.env.local` file:
 
 ```bash
+# Required: Firecrawl API for web scraping
 FIRECRAWL_KEY="your_firecrawl_key"
-# If you want to use your self-hosted Firecrawl, add the following below:
-# FIRECRAWL_BASE_URL="http://localhost:3002"
 
+# Required: LLM Provider Configuration
+LLM_PROVIDER="openai"
+LLM_MODEL="o3-mini"
 OPENAI_KEY="your_openai_key"
 ```
 
-To use local LLM, comment out `OPENAI_KEY` and instead uncomment `OPENAI_ENDPOINT` and `OPENAI_MODEL`:
-
-- Set `OPENAI_ENDPOINT` to the address of your local server (eg."http://localhost:1234/v1")
-- Set `OPENAI_MODEL` to the name of the model loaded in your local server.
+See the [LLM Provider Configuration](#llm-provider-configuration) section below for detailed setup instructions.
 
 ### Docker
 
@@ -150,30 +149,154 @@ The system will then:
 
 The final report will be saved as `report.md` or `answer.md` in your working directory, depending on which modes you selected.
 
+## LLM Provider Configuration
+
+Deep Research supports multiple LLM providers with a simple, unified configuration system. You can easily switch between providers by changing just 2-3 environment variables.
+
+### Quick Start
+
+Set these three environment variables in your `.env.local` file:
+
+```bash
+LLM_PROVIDER="openai"           # Provider: openai | fireworks | openrouter | custom
+LLM_MODEL="o3-mini"             # Model name (provider-specific)
+OPENAI_KEY="sk-..."             # API key for the chosen provider
+```
+
+### Supported Providers
+
+#### 1. OpenAI (Default)
+
+Use OpenAI's models including o3-mini, GPT-4o, and more.
+
+```bash
+LLM_PROVIDER="openai"
+LLM_MODEL="o3-mini"              # or "gpt-4o", "gpt-4o-mini", "o1-mini"
+OPENAI_KEY="sk-..."
+```
+
+**Recommended Models:**
+
+- `o3-mini` - Best for reasoning tasks (default)
+- `gpt-4o` - Most capable, higher cost
+- `gpt-4o-mini` - Fast and cost-effective
+- `o1-mini` - Advanced reasoning
+
+#### 2. Fireworks AI (DeepSeek R1)
+
+Use DeepSeek R1 and other models via Fireworks AI.
+
+```bash
+LLM_PROVIDER="fireworks"
+LLM_MODEL="accounts/fireworks/models/deepseek-r1"
+FIREWORKS_KEY="fw_..."
+```
+
+**Recommended Models:**
+
+- `accounts/fireworks/models/deepseek-r1` - Excellent reasoning (default)
+- `accounts/fireworks/models/llama-v3p3-70b-instruct` - Fast and capable
+- `accounts/fireworks/models/qwen2p5-72b-instruct` - Strong performance
+
+#### 3. OpenRouter
+
+Access 100+ models from multiple providers through a single API.
+
+```bash
+LLM_PROVIDER="openrouter"
+LLM_MODEL="openai/gpt-4o"        # See recommended models below
+OPENROUTER_KEY="sk-or-..."
+```
+
+**Recommended Models:**
+
+- `openai/gpt-4o` - OpenAI's best model
+- `openai/gpt-4o-mini` - Fast and affordable
+- `google/gemini-2.0-flash-exp:free` - Free, very fast
+- `anthropic/claude-3.5-sonnet` - Excellent reasoning
+- `meta-llama/llama-3.3-70b-instruct` - Open source, capable
+- `deepseek/deepseek-r1` - Advanced reasoning
+
+**Get an API key:** [https://openrouter.ai/keys](https://openrouter.ai/keys)
+
+#### 4. Custom / Local LLM
+
+Use local models via Ollama, LM Studio, or any OpenAI-compatible API.
+
+```bash
+LLM_PROVIDER="custom"
+LLM_MODEL="llama3.1"             # Your model name
+LLM_ENDPOINT="http://localhost:11434/v1"
+OPENAI_KEY="not-needed"          # Can be any string for local models
+```
+
+**Compatible with:**
+
+- [Ollama](https://ollama.ai) - `http://localhost:11434/v1`
+- [LM Studio](https://lmstudio.ai) - `http://localhost:1234/v1`
+- [vLLM](https://github.com/vllm-project/vllm) - Custom endpoint
+- Any OpenAI-compatible API
+
+### Advanced Configuration
+
+#### Custom Endpoint Override
+
+Override the default endpoint for any provider:
+
+```bash
+LLM_PROVIDER="openai"
+LLM_MODEL="gpt-4o"
+LLM_ENDPOINT="https://custom-proxy.example.com/v1"
+OPENAI_KEY="sk-..."
+```
+
+#### Context Size
+
+Adjust the maximum context window (default: 128,000 tokens):
+
+```bash
+CONTEXT_SIZE="200000"
+```
+
+### Legacy Configuration (Deprecated)
+
+The old configuration method still works for backward compatibility, but we recommend using the new `LLM_PROVIDER` approach:
+
+```bash
+# Old way (still works)
+OPENAI_KEY="sk-..."
+CUSTOM_MODEL="gpt-4o"
+OPENAI_ENDPOINT="https://api.openai.com/v1"
+
+# New way (recommended)
+LLM_PROVIDER="openai"
+LLM_MODEL="gpt-4o"
+OPENAI_KEY="sk-..."
+```
+
+### Troubleshooting
+
+**Error: "No LLM provider configured"**
+
+- Make sure you've set `LLM_PROVIDER` and the corresponding API key
+- Check that your API key environment variable matches your provider
+
+**Error: "Invalid LLM_PROVIDER"**
+
+- Valid values are: `openai`, `fireworks`, `openrouter`, `custom`
+- Check for typos in your `.env.local` file
+
+**Model not working as expected?**
+
+- Verify the model name is correct for your provider
+- Check the provider's documentation for available models
+- Ensure your API key has access to the model
+
 ### Concurrency
 
 If you have a paid version of Firecrawl or a local version, feel free to increase the `ConcurrencyLimit` by setting the `CONCURRENCY_LIMIT` environment variable so it runs faster.
 
 If you have a free version, you may sometimes run into rate limit errors, you can reduce the limit to 1 (but it will run a lot slower).
-
-### DeepSeek R1
-
-Deep research performs great on R1! We use [Fireworks](http://fireworks.ai) as the main provider for the R1 model. To use R1, simply set a Fireworks API key:
-
-```bash
-FIREWORKS_KEY="api_key"
-```
-
-The system will automatically switch over to use R1 instead of `o3-mini` when the key is detected.
-
-### Custom endpoints and models
-
-There are 2 other optional env vars that lets you tweak the endpoint (for other OpenAI compatible APIs like OpenRouter or Gemini) as well as the model string.
-
-```bash
-OPENAI_ENDPOINT="custom_endpoint"
-CUSTOM_MODEL="custom_model"
-```
 
 ## How It Works
 
@@ -198,10 +321,10 @@ CUSTOM_MODEL="custom_model"
    - Compiles all findings into a comprehensive markdown report
    - Includes all sources and references
    - Organizes information in a clear, readable format
-  
+
 ## Community implementations
 
-**Python**: https://github.com/Finance-LLMs/deep-research-python
+**Python**: <https://github.com/Finance-LLMs/deep-research-python>
 
 ## License
 

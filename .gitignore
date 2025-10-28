@@ -42,3 +42,19 @@ yarn-error.log*
 .DS_Store
 *.pem
 bun.lockb
+
+# PWA files
+**/public/sw.js
+**/public/workbox-*.js
+**/public/worker-*.js
+**/public/sw.js.map
+**/public/workbox-*.js.map
+**/public/worker-*.js.map
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Uploaded files
+apps/backend/uploads/*
+!apps/backend/uploads/.gitkeep

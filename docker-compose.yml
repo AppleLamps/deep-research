@@ -1,10 +1,35 @@
+version: '3.8'
+
 services:
-  deep-research:
-    container_name: deep-research
-    build: .
+  backend:
+    container_name: deep-research-backend
+    build: ./apps/backend
     env_file:
       - .env.local
+    ports:
+      - "3051:3051"
     volumes:
-      -  ./:/app/
+      - ./apps/backend/src:/app/src
+    environment:
+      - PORT=3051
+      - FRONTEND_URL=http://localhost:3000
+    tty: true
+    stdin_open: true
+
+  web:
+    container_name: deep-research-web
+    build: ./apps/web
+    env_file:
+      - .env.local
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:3051
+    depends_on:
+      - backend
     tty: true
     stdin_open: true
